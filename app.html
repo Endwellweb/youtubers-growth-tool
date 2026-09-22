@@ -3719,8 +3719,7 @@ ${guide.map((g,i)=>`${i+1}. ${g}`).join('\n')}${tips.length ? `\n\nAdvice for th
   /* Paste the address of your own free AI service here (see Part 11 of the setup guide).
      While it's empty, the app quietly uses the built-in writer instead. Your API key is
      NEVER put in this file — it stays secret inside that service. */
-  const AI_PROXY_URL = '';
-
+  const AI_PROXY_URL = 'https://ygt-ai.2nicereport.workers.dev';
   const AI_BASE = 'https://generativelanguage.googleapis.com/v1beta';
   const aiStore = {
     get key(){ try{ return localStorage.getItem('ygt:gemini-key') || ''; }catch(e){ return ''; } },
