@@ -385,6 +385,7 @@
     color:#ACACAC;cursor:pointer;position:relative;
   }
   .navlist button svg{width:16px;height:16px;flex:0 0 auto;opacity:0.85;}
+  #btn-menu{display:none;}   /* desktop: the full menu is always visible */
   .navlist button.active{background:#232323;color:var(--white);}
   .navlist button.active::before{content:"";position:absolute;left:-16px;top:8px;bottom:8px;width:3px;background:var(--red);border-radius:2px;}
   .navlist button:hover:not(.active){background:#1D1D1D;color:var(--white);}
@@ -475,11 +476,14 @@
     .shell{flex-direction:column;}
     .sidebar{width:100%;flex:none;height:auto;position:relative;padding:14px 16px;}
     .sidebar .brandrow{margin:0 0 14px;}
-    /* one swipeable row instead of a wall of buttons on phones */
-    .navlist{flex-direction:row;flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -16px;padding:0 16px 2px;}
-    .navlist::-webkit-scrollbar{display:none;}
-    .navlist li{flex:0 0 auto;}
-    .navlist button{white-space:nowrap;}
+    /* Tap "Menu" to open the full list; it closes again when you pick a page. */
+    .sidebar .brandrow{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+    #btn-menu{display:inline-flex;align-items:center;gap:7px;background:#232323;color:var(--white);
+      border:1px solid #3A3A3A;border-radius:6px;padding:9px 13px;font-size:13px;font-weight:700;
+      font-family:'Inter';cursor:pointer;}
+    #btn-menu svg{width:17px;height:17px;}
+    .navlist{display:none;flex-direction:column;gap:3px;margin-top:12px;max-height:64vh;overflow-y:auto;}
+    .navlist.open{display:flex;}
     .navlist button.active::before{display:none;}
     .navlist button.active::before{display:none;}
     .sidebar-foot{display:none;}
@@ -833,6 +837,11 @@
         <div class="brandrow">
           <div class="brand-mark"></div>
           <div class="brand-name" style="font-size:12.5px;">GROWTH TOOL</div>
+          <button id="btn-menu" aria-label="Menu" aria-expanded="false" aria-controls="navlist">
+            <svg id="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+            <svg id="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="display:none;"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            <span id="menu-label">Menu</span>
+          </button>
         </div>
         <ul class="navlist" id="navlist">
           <li><button data-page="dashboard" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Dashboard</button></li>
@@ -850,6 +859,7 @@
           <li><button data-page="seo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>SEO Tool</button></li>
           <li><button data-page="guides"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 012-2h14v16H6a2 2 0 00-2 2z"/><path d="M4 19V5"/></svg>Creator Guides</button></li>
           <li><button data-page="collab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Collaborate</button></li>
+          <li id="nav-referrals" style="display:none;"><button data-page="referrals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 11a4 4 0 10-8 0 4 4 0 008 0z"/><path d="M3 21a7 7 0 0114 0"/><path d="M18 8h4M20 6v4"/></svg>Referrals (owner)</button></li>
         </ul>
         <div class="sidebar-foot" id="sidebar-user">Signed in</div>
       </aside>
@@ -1447,6 +1457,53 @@
           <div id="cg-shorts" class="cg-panel"></div>
           <div id="cg-faceless" class="cg-panel" style="display:none;"></div>
           <div id="cg-templates" class="cg-panel" style="display:none;"></div>
+        </div>
+
+        <!-- ---- REFERRALS (owner only) ---- -->
+        <div class="page" id="page-referrals">
+          <div class="page-head"><div>
+            <div class="eyebrow">OWNER ONLY</div>
+            <h1>Referrals</h1>
+            <p>Look up who a referral code belongs to, and keep track of which rewards you've paid. Everything here is stored only in this browser — nothing is published on your site.</p>
+          </div></div>
+
+          <div class="card">
+            <h2>1. Who does this code belong to?</h2>
+            <p class="cs-note">Paste the referral code — or the customer's whole WhatsApp message — and it finds them.</p>
+            <div class="field"><textarea id="rf-lookup" class="cs-textarea" rows="3" placeholder="e.g. REF-0BBA5   ·   or paste: &quot;Hi, I have paid... Referral code: REF-0BBA5&quot;"></textarea></div>
+            <button class="btn btn-sm" id="btn-rf-lookup">Find this customer →</button>
+            <div id="rf-lookup-result"></div>
+          </div>
+
+          <div class="card">
+            <h2>2. Log a referral</h2>
+            <p class="cs-note">Add it once you've confirmed the new customer's payment in Paystack.</p>
+            <div class="ps-grid">
+              <div class="field"><label for="rf-code">Referrer's code</label><input type="text" id="rf-code" placeholder="REF-0BBA5"></div>
+              <div class="field"><label for="rf-new">New customer (your reference)</label><input type="text" id="rf-new" placeholder="e.g. 015"></div>
+              <div class="field"><label for="rf-amount">Reward amount (₦)</label><input type="number" id="rf-amount" placeholder="1000"></div>
+            </div>
+            <div class="field"><label for="rf-note">Note (optional)</label><input type="text" id="rf-note" placeholder="e.g. paid by transfer, 3 Oct"></div>
+            <button class="btn btn-sm" id="btn-rf-add">Add to my list</button>
+          </div>
+
+          <div class="card">
+            <h2>3. Rewards owed &amp; paid</h2>
+            <div class="cs-stats" id="rf-totals"></div>
+            <div id="rf-list"></div>
+            <div class="cs-actions">
+              <button class="btn btn-outline btn-sm" id="btn-rf-csv">Download as spreadsheet (.csv)</button>
+              <button class="btn btn-outline btn-sm" id="btn-rf-backup">Back up my list</button>
+              <button class="btn btn-outline btn-sm" id="btn-rf-restore">Restore from backup</button>
+            </div>
+            <p class="cs-note">⚠ This list lives in this browser only. If you clear your browser data or switch device, it's gone — download the spreadsheet or a backup regularly.</p>
+          </div>
+
+          <div class="card">
+            <h2>4. All customers &amp; their codes</h2>
+            <p class="cs-note">Everyone currently in your <strong>app.html</strong> list, with the referral code each one sees.</p>
+            <div id="rf-customers" style="overflow-x:auto;"></div>
+          </div>
         </div>
 
         <div class="page" id="page-tracker">
@@ -2435,13 +2492,29 @@
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
   }
+  function setMenuOpen(open){
+    document.getElementById('navlist').classList.toggle('open', open);
+    document.getElementById('icon-menu').style.display = open ? 'none' : 'block';
+    document.getElementById('icon-close').style.display = open ? 'block' : 'none';
+    document.getElementById('menu-label').textContent = open ? 'Close' : 'Menu';
+    document.getElementById('btn-menu').setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  document.getElementById('btn-menu').addEventListener('click', ()=>{
+    setMenuOpen(!document.getElementById('navlist').classList.contains('open'));
+  });
+
+  function refreshOwnerNav(){
+    const li = document.getElementById('nav-referrals');
+    if(li) li.style.display = isOwner() ? 'block' : 'none';
+  }
   function showPage(name){
+    refreshOwnerNav();   // owner tools appear as soon as the owner code is used
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.getElementById('page-'+name).classList.add('active');
     document.querySelectorAll('#navlist button').forEach(b=>{
       b.classList.toggle('active', b.dataset.page === name);
-      if(b.dataset.page === name && window.innerWidth <= 760) b.scrollIntoView({inline:'center', block:'nearest'});
     });
+    if(window.innerWidth <= 760) setMenuOpen(false);   // close the menu after choosing a page
     if(name === 'dashboard') renderDashboard();
     if(name === 'tracker') renderTracker();
     if(name === 'calendar') renderCalendarPage();
@@ -2451,6 +2524,7 @@
     if(name === 'money') renderMoneyCalc();
     if(name === 'guides') renderGuides();
     if(name === 'dashboard'){ renderShareCard(); renderCommunity(); }
+    if(name === 'referrals') renderReferrals();
   }
   document.querySelectorAll('#navlist button').forEach(b=>{
     b.addEventListener('click', ()=>showPage(b.dataset.page));
@@ -2480,7 +2554,7 @@
      ADDING A NEW CUSTOMER
      1. Open code-generator.html (included alongside this file).
      2. Generate a code — it gives you the code AND its fingerprint.
-     3. Paste the fingerprint into ACCESS_CODE_HASHES below, commit the change.
+     3. Paste the whole line it gives you into ACCESS_CODE_HASHES below, commit the change.
      4. Send the code to the customer on WhatsApp.
      REVOKING: delete that fingerprint from the list and commit. They're locked out on
      their next visit (existing unlocked sessions on their device persist — see
@@ -2496,8 +2570,18 @@
     // TO REVOKE SOMEONE: delete their whole line, then commit. They're locked out the
     // next time the page loads for them.
     // ---------------------------------------------------------------------------
-    "3676e34560692dad10f339015c3f1c2bd4e8834939043be04e28f9095bc0bba5", // OWNER — Endwell (keep this one)
+    // Each line is one customer. "ref" is your own private reference number and "added"
+    // is the date you gave them access — both show in your Referrals dashboard.
+    { h:"3676e34560692dad10f339015c3f1c2bd4e8834939043be04e28f9095bc0bba5", ref:"OWNER", added:"—" },
   ];
+
+  /* Older plain-text lines still work, so nothing breaks if you paste one of those. */
+  const OWNER_CODE_HASH = "3676e34560692dad10f339015c3f1c2bd4e8834939043be04e28f9095bc0bba5";
+  function acHash(entry){ return typeof entry === 'string' ? entry : (entry && entry.h) || ''; }
+  function acEntries(){ return ACCESS_CODE_HASHES.map(e => typeof e === 'string' ? { h:e, ref:'', added:'' } : e); }
+  function acKnown(hash){ return ACCESS_CODE_HASHES.some(e => acHash(e) === hash); }
+  function refCodeFor(hash){ return 'REF-' + String(hash).slice(-5).toUpperCase(); }
+  function isOwner(){ try{ return localStorage.getItem(UNLOCK_KEY) === OWNER_CODE_HASH; }catch(e){ return false; } }
 
   async function sha256Hex(text){
     const buf = new TextEncoder().encode(text.trim().toUpperCase());
@@ -2512,7 +2596,7 @@
   function storedUnlockIsStillValid(){
     try{
       const stored = localStorage.getItem(UNLOCK_KEY);
-      return !!stored && ACCESS_CODE_HASHES.includes(stored);
+      return !!stored && acKnown(stored);
     }catch(e){ return false; }
   }
 
@@ -2539,6 +2623,7 @@
     closeModal();
     showScreen('screen-app');
     document.getElementById('sidebar-user').textContent = profile.name || 'Member';
+    document.getElementById('nav-referrals').style.display = isOwner() ? 'block' : 'none';
     showPage('dashboard');
   }
 
@@ -2549,7 +2634,7 @@
     if(!code){ err.textContent = "Enter the access code you were sent."; err.style.display='block'; return; }
 
     const hash = await sha256Hex(code);
-    if(!ACCESS_CODE_HASHES.includes(hash)){
+    if(!acKnown(hash)){
       err.textContent = "That code isn't valid. Check for typos, or message us on WhatsApp.";
       err.style.display = 'block';
       return;
@@ -3719,7 +3804,8 @@ ${guide.map((g,i)=>`${i+1}. ${g}`).join('\n')}${tips.length ? `\n\nAdvice for th
   /* Paste the address of your own free AI service here (see Part 11 of the setup guide).
      While it's empty, the app quietly uses the built-in writer instead. Your API key is
      NEVER put in this file — it stays secret inside that service. */
-  const AI_PROXY_URL = 'https://ygt-ai.2nicereport.workers.dev';
+  const AI_PROXY_URL = '';
+
   const AI_BASE = 'https://generativelanguage.googleapis.com/v1beta';
   const aiStore = {
     get key(){ try{ return localStorage.getItem('ygt:gemini-key') || ''; }catch(e){ return ''; } },
@@ -4713,6 +4799,123 @@ Write about ${add} NEW words that will be inserted just before the ending. They 
       toast("Image downloaded — post it to your Status and add the link");
       csCopy(text, null);
     }, 'image/png');
+  });
+
+  /* ================= REFERRALS DASHBOARD (owner only) ================= */
+  function rfLoad(){ try{ return JSON.parse(localStorage.getItem('ygt:referrals') || '[]'); }catch(e){ return []; } }
+  function rfSave(list){ try{ localStorage.setItem('ygt:referrals', JSON.stringify(list)); }catch(e){ toast("Couldn't save — your browser storage may be full"); } }
+
+  function rfFindByCode(raw){
+    const m = String(raw).toUpperCase().match(/REF-([A-Z0-9]{5})/);
+    const tail = (m ? m[1] : String(raw).trim().toUpperCase().replace(/^REF-/,'')).toLowerCase();
+    if(tail.length !== 5) return null;
+    const hit = acEntries().find(e => e.h.slice(-5).toLowerCase() === tail);
+    return hit || { notFound: true, tail };
+  }
+
+  document.getElementById('btn-rf-lookup').addEventListener('click', ()=>{
+    const box = document.getElementById('rf-lookup-result');
+    const found = rfFindByCode(document.getElementById('rf-lookup').value);
+    if(!found){ box.innerHTML = '<p class="cs-note">Enter a code like <strong>REF-0BBA5</strong>.</p>'; return; }
+    if(found.notFound){
+      box.innerHTML = `<div class="ps-scene"><div class="ps-scene-label">No match</div><div class="ps-scene-text">No customer in your list has the code ending <strong>${csEsc(found.tail.toUpperCase())}</strong>.<br><br>Either the code was mistyped, or that customer's access has been revoked. Ask the buyer to confirm the code.</div></div>`;
+      return;
+    }
+    const code = refCodeFor(found.h);
+    box.innerHTML = `<div class="ps-scene"><div class="ps-scene-label">Found — ${csEsc(code)}</div>
+      <div class="ps-scene-text"><strong>Your reference:</strong> ${csEsc(found.ref || '(no reference saved on this line)')}<br>
+      <strong>Given access:</strong> ${csEsc(found.added || '—')}<br><br>
+      Look up that reference in your private customer list to get their name and WhatsApp number, confirm the new buyer's payment in Paystack, then pay the reward and log it below.</div></div>`;
+    document.getElementById('rf-code').value = code;
+    document.getElementById('rf-amount').value = document.getElementById('rf-amount').value || String(REFERRAL_REWARD).replace(/[^0-9]/g,'');
+  });
+
+  document.getElementById('btn-rf-add').addEventListener('click', ()=>{
+    const code = document.getElementById('rf-code').value.trim().toUpperCase();
+    const who = document.getElementById('rf-new').value.trim();
+    if(!code){ toast("Enter the referrer's code"); return; }
+    const found = rfFindByCode(code);
+    const list = rfLoad();
+    list.unshift({
+      id: Date.now(), code, ref: found && !found.notFound ? (found.ref || '') : '',
+      newCustomer: who, amount: Number(document.getElementById('rf-amount').value) || 0,
+      note: document.getElementById('rf-note').value.trim(),
+      date: new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}),
+      paid: false
+    });
+    rfSave(list); renderReferrals();
+    ['rf-new','rf-note'].forEach(id=>document.getElementById(id).value = '');
+    toast('Referral logged');
+  });
+
+  function renderReferrals(){
+    const list = rfLoad();
+    const owed = list.filter(r=>!r.paid).reduce((a,r)=>a + (r.amount||0), 0);
+    const paid = list.filter(r=>r.paid).reduce((a,r)=>a + (r.amount||0), 0);
+    document.getElementById('rf-totals').innerHTML =
+      `<span class="cs-stat">${list.length} referral${list.length===1?'':'s'}</span>` +
+      `<span class="cs-stat" style="background:var(--red-soft);color:var(--red);">₦${owed.toLocaleString()} still to pay</span>` +
+      `<span class="cs-stat" style="background:#E7F5EC;color:#1E7A3C;">₦${paid.toLocaleString()} paid</span>`;
+    document.getElementById('rf-list').innerHTML = list.length ? `
+      <div style="overflow-x:auto;"><table class="chan-table"><thead><tr>
+        <th>Date</th><th>Referrer</th><th>Their ref</th><th>New customer</th><th>Reward</th><th>Note</th><th>Status</th><th></th>
+      </tr></thead><tbody>${list.map(r=>`<tr${r.paid?' style="opacity:.6;"':''}>
+        <td>${csEsc(r.date)}</td><td>${csEsc(r.code)}</td><td>${csEsc(r.ref||'—')}</td><td>${csEsc(r.newCustomer||'—')}</td>
+        <td class="num">₦${(r.amount||0).toLocaleString()}</td><td>${csEsc(r.note||'')}</td>
+        <td>${r.paid ? '✓ Paid' : '<strong style="color:var(--red);">Owed</strong>'}</td>
+        <td><button class="btn btn-outline btn-sm" data-rf-toggle="${r.id}">${r.paid ? 'Mark unpaid' : 'Mark paid'}</button>
+            <button class="btn btn-outline btn-sm" data-rf-del="${r.id}">Delete</button></td>
+      </tr>`).join('')}</tbody></table></div>` : '<p class="cs-note">Nothing logged yet.</p>';
+
+    document.querySelectorAll('[data-rf-toggle]').forEach(b=>b.addEventListener('click', ()=>{
+      const l = rfLoad(); const r = l.find(x=>String(x.id) === b.dataset.rfToggle);
+      if(r){ r.paid = !r.paid; rfSave(l); renderReferrals(); }
+    }));
+    document.querySelectorAll('[data-rf-del]').forEach(b=>b.addEventListener('click', ()=>{
+      if(!confirm('Delete this referral from your list?')) return;
+      rfSave(rfLoad().filter(x=>String(x.id) !== b.dataset.rfDel)); renderReferrals();
+    }));
+
+    // everyone currently in the access list
+    const rows = acEntries().filter(e=>e.ref !== 'OWNER').map(e=>`<tr>
+      <td>${csEsc(e.ref || '—')}</td><td>${csEsc(e.added || '—')}</td>
+      <td><strong>${csEsc(refCodeFor(e.h))}</strong></td>
+      <td><button class="btn btn-outline btn-sm" data-rf-copy="${csEsc(refCodeFor(e.h))}">Copy code</button></td></tr>`).join('');
+    document.getElementById('rf-customers').innerHTML = rows
+      ? `<table class="chan-table"><thead><tr><th>Your reference</th><th>Given access</th><th>Their referral code</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
+      : '<p class="cs-note">No customers added yet. When you add someone with the code generator, paste the whole line it gives you into <strong>ACCESS_CODE_HASHES</strong> and they appear here.</p>';
+    document.querySelectorAll('[data-rf-copy]').forEach(b=>b.addEventListener('click', ()=>csCopy(b.dataset.rfCopy, b)));
+  }
+
+  document.getElementById('btn-rf-csv').addEventListener('click', ()=>{
+    const list = rfLoad();
+    if(!list.length){ toast('Nothing to download yet'); return; }
+    const q = s => '"' + String(s == null ? '' : s).replace(/"/g,'""') + '"';
+    const csv = ['Date,Referrer code,Their reference,New customer,Reward,Note,Status']
+      .concat(list.map(r=>[r.date, r.code, r.ref, r.newCustomer, r.amount, r.note, r.paid ? 'Paid' : 'Owed'].map(q).join(','))).join('\n');
+    csDownload('referrals-' + new Date().toISOString().slice(0,10) + '.csv', '\ufeff' + csv, 'text/csv;charset=utf-8');
+  });
+  document.getElementById('btn-rf-backup').addEventListener('click', ()=>{
+    csDownload('referrals-backup-' + new Date().toISOString().slice(0,10) + '.json', JSON.stringify(rfLoad(), null, 2), 'application/json');
+  });
+  document.getElementById('btn-rf-restore').addEventListener('click', ()=>{
+    const input = document.createElement('input'); input.type = 'file'; input.accept = '.json,application/json';
+    input.onchange = () => {
+      const file = input.files[0]; if(!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try{
+          const data = JSON.parse(reader.result);
+          if(!Array.isArray(data)) throw new Error('bad file');
+          const existing = rfLoad(), ids = new Set(existing.map(r=>r.id));
+          const merged = existing.concat(data.filter(r=>!ids.has(r.id)));   // never lose what's already here
+          rfSave(merged); renderReferrals();
+          toast(`Restored — ${merged.length} referrals in your list`);
+        }catch(e){ toast("That file doesn't look like a referrals backup"); }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
   });
 
   async function goToBatch(newBatch){
@@ -5864,6 +6067,7 @@ ${['#' + (words[0]||'youtube'), '#' + (words[1]||'tips'), '#' + (words.slice(0,2
     renderBreakdownIfReady();
     showScreen('screen-app');
     document.getElementById('sidebar-user').textContent = profile.name || 'Member';
+    document.getElementById('nav-referrals').style.display = isOwner() ? 'block' : 'none';
     showPage('dashboard');
   })();
 
